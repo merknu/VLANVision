@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLANVision - Network Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/png">
+</head>
+
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="VLANVision Logo" class="logo">
+        <nav>
+            <ul>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#network">Network</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="#integration">Integration</a></li>
+                <li><a href="#help">Help</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="dashboard">
+            <h1>Dashboard</h1>
+            <!-- Add dashboard content here -->
+        </section>
+
+        <section id="network">
+            <h1>Network</h1>
+            <!-- Add network content here -->
+        </section>
+
+        <section id="security">
+            <h1>Security</h1>
+            <!-- Add security content here -->
+        </section>
+
+        <section id="integration">
+            <h1>Integration</h1>
+            <!-- Add integration content here -->
+        </section>
+
+        <section id="help">
+            <h1>Help</h1>
+            <!-- Add help content here -->
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 VLANVision. All rights reserved.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
