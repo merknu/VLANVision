@@ -1,2 +1,33 @@
 # VLANVision
-VLANVision is a scalable network management software with a user-friendly interface. It integrates with Grafana and Node-RED for enhanced capabilities and supports various network sizes. Designed for optimal user experience, it offers responsive design, contextual help, and comprehensive training resources.
+
+VLANVision is a network management software that provides a user-friendly interface for managing networks with ease. It integrates with powerful tools like Grafana and Node-RED to enhance its capabilities.
+
+## Features
+
+- Intuitive dashboard with key performance indicators and visualizations
+- Easy management of VLANs, devices, and configurations
+- Integration with Grafana and Node-RED for advanced monitoring and customization
+- Responsive design for desktop, tablet, and mobile devices
+- Accessibility and customization options
+
+## Installation
+
+1. Clone this repository:
+git clone https://github.com/yourusername/VLANVision.git
+
+markdown
+Copy code
+2. Install dependencies:
+npm install
+
+markdown
+Copy code
+3. Start the application:
+npm start
+
+csharp
+Copy code
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
