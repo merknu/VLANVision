@@ -1,0 +1,2 @@
+[console_scripts]
+vlanvision = vlanvision.main:main

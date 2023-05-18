@@ -1,7 +1,6 @@
 # Path: /src/security/user.py
 # This is the class for user management system (login, logout, etc.)
 import hashlib
-import os
 import secrets
 import json
 

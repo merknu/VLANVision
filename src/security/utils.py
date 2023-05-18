@@ -50,3 +50,18 @@ def require_authentication(func):
             return {'error': 'Authentication required'}
         return func(*args, **kwargs)
     return wrapper
+
+
+def analyze_logs(logs):
+    analysis = {
+        "intrusions": 0,
+        "successful_connections": 0
+    }
+
+    for log in logs:
+        if "unauthorized access" in log:
+            analysis["intrusions"] += 1
+        if "connected successfully" in log:
+            analysis["successful_connections"] += 1
+
+    return analysis
