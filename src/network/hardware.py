@@ -40,3 +40,27 @@ class HardwareInventory:
 
     def list_hardware(self):
         return [str(hardware) for hardware in self.hardware_inventory.values()]
+
+
+class Port:
+    def __init__(self, number, status='down'):
+        self.number = number
+        self.status = status
+
+
+class Device(Hardware):
+    def __init__(self, device_id, model, manufacturer, serial_number, firmware_version, device_type, name, ip_address, mac_address):
+        super().__init__(model, manufacturer, serial_number, firmware_version)
+        self.device_id = device_id
+        self.device_type = device_type
+        self.name = name
+        self.ip_address = ip_address
+        self.mac_address = mac_address
+        self.ports = []
+
+    def add_port_to_device(self, port_number):
+        self.ports.append(port_number)
+
+    def update_device(self, name, ip_address):
+        self.name = name
+        self.ip_address = ip_address

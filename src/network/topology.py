@@ -1,44 +1,71 @@
 # Path: /src/network/topology.py
 # This is the class for topology
-class Device:
-    def __init__(self, device_id, device_type, name, ip_address, mac_address):
-        self.device_id = device_id
-        self.device_type = device_type
-        self.name = name
-        self.ip_address = ip_address
-        self.mac_address = mac_address
-
-    def update_device(self, name, ip_address):
-        self.name = name
-        self.ip_address = ip_address
-
-    def __str__(self):
-        return f"{self.device_type}: {self.name}, IP: {self.ip_address}, MAC: {self.mac_address}"
+from src.network.hardware import Device  # Import the updated Device class from hardware.py
 
 
 class NetworkTopology:
     def __init__(self):
         self.devices = {}
 
-    def add_device(self, device_id, device_type, name, ip_address, mac_address):
-        if device_id in self.devices:
-            raise ValueError("Device ID already exists")
-        self.devices[device_id] = Device(device_id, device_type, name, ip_address, mac_address)
+    def add_device(self, device: Device):
+        """Adds a device to the network topology.
 
-    def remove_device(self, device_id):
+        Args:
+            device (Device): An instance of the Device class.
+
+        Raises:
+            ValueError: If a device with the same ID already exists in the network topology.
+        """
+        if device.device_id in self.devices:
+            raise ValueError("Device ID already exists")
+        self.devices[device.device_id] = device
+
+    def remove_device(self, device_id: str):
+        """Removes a device from the network topology.
+
+        Args:
+            device_id (str): The ID of the device to remove.
+
+        Raises:
+            ValueError: If a device with the given ID does not exist in the network topology.
+        """
         if device_id not in self.devices:
             raise ValueError("Device ID not found")
         del self.devices[device_id]
 
-    def update_device(self, device_id, name, ip_address):
-        if device_id not in self.devices:
-            raise ValueError("Device ID not found")
-        self.devices[device_id].update_device(name, ip_address)
+    def update_device(self, device: Device):
+        """Updates the information of a device in the network topology.
 
-    def get_device(self, device_id):
+        Args:
+            device (Device): An instance of the Device class with updated information.
+
+        Raises:
+            ValueError: If a device with the same ID does not exist in the network topology.
+        """
+        if device.device_id not in self.devices:
+            raise ValueError("Device ID not found")
+        self.devices[device.device_id] = device
+
+    def get_device(self, device_id: str) -> Device:
+        """Gets a device from the network topology.
+
+        Args:
+            device_id (str): The ID of the device to get.
+
+        Returns:
+            Device: An instance of the Device class.
+
+        Raises:
+            ValueError: If a device with the given ID does not exist in the network topology.
+        """
         if device_id not in self.devices:
             raise ValueError("Device ID not found")
         return self.devices[device_id]
 
-    def list_devices(self):
+    def list_devices(self) -> list:
+        """Lists all devices in the network topology.
+
+        Returns:
+            list: A list of string representations of all devices in the network topology.
+        """
         return [str(device) for device in self.devices.values()]

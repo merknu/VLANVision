@@ -2,6 +2,7 @@
 # This is the class for utils functions for network
 import json
 import os
+import ipaddress
 
 
 def load_configuration(file_path):
@@ -47,6 +48,11 @@ def validate_ip_address(ip_address):
         return False
 
     return True
+
+
+def calculate_subnet(ip_address, subnet_mask):
+    ip_interface = ipaddress.ip_interface(f"{ip_address}/{subnet_mask}")
+    return str(ip_interface.network.network_address)
 
 
 def validate_cidr(cidr):
