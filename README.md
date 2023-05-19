@@ -1,4 +1,4 @@
-# This is still under development
+# This is still under development and is not usable as it is
 
 # VLANVision
 
@@ -15,7 +15,7 @@ VLANVision is a network management software that provides a user-friendly interf
 ## Installation
 
 1. Clone this repository:
-git clone https://github.com/yourusername/VLANVision.git
+git clone https://github.com/merknu/VLANVision.git
 
 markdown
 Copy code
