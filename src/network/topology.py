@@ -2,7 +2,7 @@
 # This is the class for topology
 import sys
 from typing import Dict, List, Union
-from network.hardware import Device as HardwareDevice
+from src.network.hardware import Device as HardwareDevice
 
 
 class Device(HardwareDevice):
