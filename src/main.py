@@ -4,11 +4,8 @@
 import sys
 import argparse
 
-
-from src.network import utils as network_utils
-from src.security import utils as security_utils
+from src.loader import initialize_application
 from src.ui.app import run as run_ui
-from src.integration import utils as integration_utils
 
 
 def main(args):
@@ -17,11 +14,7 @@ def main(args):
 
     parsed_args = parser.parse_args(args)
 
-    network_utils.initialize_network()
-    network_utils.initialize_hardware_inventory()
-    network_utils.initialize_network_topology()
-    security_utils.initialize_security()
-    integration_utils.initialize_integrations()
+    initialize_application()
 
     if parsed_args.debug:
         print("Debug mode enabled")
