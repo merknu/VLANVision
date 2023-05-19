@@ -17,18 +17,11 @@ VLANVision is a network management software that provides a user-friendly interf
 1. Clone this repository:
 git clone https://github.com/merknu/VLANVision.git
 
-markdown
-Copy code
 2. Install dependencies:
 npm install
 
-markdown
-Copy code
 3. Start the application:
 npm start
-
-csharp
-Copy code
 
 ## License
 
