@@ -1,4 +1,4 @@
-# This is still under development and is not usable as it is
+# This is still under development and its not working as it is
 
 # VLANVision
 
