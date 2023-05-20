@@ -1,4 +1,4 @@
-# This is still under development
+# This is still under development and its not working as it is
 
 # VLANVision
 
@@ -15,20 +15,13 @@ VLANVision is a network management software that provides a user-friendly interf
 ## Installation
 
 1. Clone this repository:
-git clone https://github.com/yourusername/VLANVision.git
+git clone https://github.com/merknu/VLANVision.git
 
-markdown
-Copy code
 2. Install dependencies:
 npm install
 
-markdown
-Copy code
 3. Start the application:
 npm start
-
-csharp
-Copy code
 
 ## License
 
