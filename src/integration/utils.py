@@ -4,10 +4,15 @@ import requests
 import json
 
 
+# src/integration/utils.py
 def load_integration_credentials(filename):
     """Load integration credentials from a JSON file."""
-    with open(filename, 'r') as f:
-        return json.load(f)
+    try:
+        with open(filename, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"No such file or directory: '{filename}'")
+        return None
 
 
 def initialize_integrations():

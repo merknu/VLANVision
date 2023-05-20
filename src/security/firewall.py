@@ -68,4 +68,4 @@ class FirewallManager:
             del self.rules[index]
             self.save_rules()
         else:
-            raise ValueError("Invalid rule index.")
+            raise ValueError(f"Invalid rule index. Valid indices are from 0 to {len(self.rules) - 1}.")

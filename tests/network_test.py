@@ -11,7 +11,7 @@ from src.network import vlan, topology, hardware, utils
 
 class TestNetwork(unittest.TestCase):
 
-    def test_create_vlan(self):
+    def test_create_vlan_creates_vlan_with_correct_id_and_name(self):
         vlan_id = 10
         name = "Test_VLAN"
         new_vlan = vlan.create_vlan(vlan_id, name)
