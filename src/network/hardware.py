@@ -1,6 +1,6 @@
 # Path: /src/network/hardware.py
 # This is the class for hardware inventory management system
-from typing import Optional, List
+from typing import List
 
 
 class Hardware:

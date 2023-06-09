@@ -1,8 +1,10 @@
 # Path: /src/network/utils.py
 # This is the class for utils functions for network
+import ipaddress
 import json
 import os
-import ipaddress
+
+from hardware import HardwareInventory
 
 
 def load_configuration(file_path):
@@ -16,18 +18,41 @@ def load_configuration(file_path):
 
 
 def initialize_network():
-    # Initialize network here
-    pass
+    # Load configuration data from a predefined file path
+    config_data = load_configuration('/path/to/config/file')
+
+    # Initialize the network based on the configuration data
+    # This is just a placeholder, the actual initialization would depend on the structure of the config_data and the specifics of the network
+    network = {}
+    for key, value in config_data['network'].items():
+        network[key] = value
+
+    return network
 
 
 def initialize_hardware_inventory():
-    # Initialize hardware inventory here
-    pass
+    # Load configuration data from a predefined file path
+    config_data = load_configuration('/path/to/config/file')
+
+    # Initialize the hardware inventory based on the configuration data
+    hardware_inventory = HardwareInventory()
+    for hardware in config_data['hardware_inventory']:
+        hardware_inventory.add_hardware(hardware['id'], hardware['model'], hardware['manufacturer'], hardware['serial_number'], hardware['firmware_version'])
+
+    return hardware_inventory
 
 
 def initialize_network_topology():
-    # Initialize network topology here
-    pass
+    # Load configuration data from a predefined file path
+    config_data = load_configuration('/path/to/config/file')
+
+    # Initialize the network topology based on the configuration data
+    # This is just a placeholder, the actual initialization would depend on the structure of the config_data and the specifics of the network topology
+    network_topology = {}
+    for key, value in config_data['network_topology'].items():
+        network_topology[key] = value
+
+    return network_topology
 
 
 def save_configuration(file_path, config_data):
