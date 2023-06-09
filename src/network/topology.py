@@ -1,14 +1,15 @@
 # Path: /src/network/topology.py
 # This is the class for topology
 import sys
-from typing import Dict, List, Union
+from typing import Dict, List
+
 from src.network.hardware import Device as HardwareDevice
 
 
 class Device(HardwareDevice):
-    def __init__(self, device_id: str, device_type: str, name: str, ip_address: str, mac_address: str):
-        super().__init__(device_id, model=None, manufacturer=None, serial_number=None, firmware_version=None,
-                         device_type=device_type)
+    def __init__(self, device_id: str, device_type: str, name: str, ip_address: str, mac_address: str,
+                 model: str, manufacturer: str, serial_number: str, firmware_version: str):
+        super().__init__(device_id, model, manufacturer, serial_number, firmware_version, device_type, name, ip_address, mac_address)
         self.name = name
         self.ip_address = ip_address
         self.mac_address = mac_address
@@ -25,10 +26,12 @@ class NetworkTopology:
     def __init__(self):
         self.devices: Dict[str, Device] = {}
 
-    def add_device(self, device_id: str, device_type: str, name: str, ip_address: str, mac_address: str):
+    def add_device(self, device_id: str, device_type: str, name: str, ip_address: str, mac_address: str,
+                   model: str, manufacturer: str, serial_number: str, firmware_version: str):
         if device_id in self.devices:
             raise ValueError("Device ID already exists")
-        self.devices[device_id] = Device(device_id, device_type, name, ip_address, mac_address)
+        self.devices[device_id] = Device(device_id, device_type, name, ip_address, mac_address,
+                                         model, manufacturer, serial_number, firmware_version)
 
     def remove_device(self, device_id: str):
         if device_id not in self.devices:
