@@ -19,10 +19,9 @@ def load_configuration(file_path):
 
 def initialize_network():
     # Load configuration data from a predefined file path
-    config_data = load_configuration('/path/to/config/file')
+    config_data = load_configuration('network_config.conf')
 
     # Initialize the network based on the configuration data
-    # This is just a placeholder, the actual initialization would depend on the structure of the config_data and the specifics of the network
     network = {}
     for key, value in config_data['network'].items():
         network[key] = value
@@ -32,7 +31,7 @@ def initialize_network():
 
 def initialize_hardware_inventory():
     # Load configuration data from a predefined file path
-    config_data = load_configuration('/path/to/config/file')
+    config_data = load_configuration('network_config.conf')
 
     # Initialize the hardware inventory based on the configuration data
     hardware_inventory = HardwareInventory()
@@ -44,10 +43,9 @@ def initialize_hardware_inventory():
 
 def initialize_network_topology():
     # Load configuration data from a predefined file path
-    config_data = load_configuration('/path/to/config/file')
+    config_data = load_configuration('network_config.conf')
 
     # Initialize the network topology based on the configuration data
-    # This is just a placeholder, the actual initialization would depend on the structure of the config_data and the specifics of the network topology
     network_topology = {}
     for key, value in config_data['network_topology'].items():
         network_topology[key] = value
