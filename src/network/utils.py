@@ -4,7 +4,7 @@ import ipaddress
 import json
 import os
 
-from hardware import HardwareInventory
+from src.network.hardware import HardwareInventory
 
 
 def load_configuration(file_path):
