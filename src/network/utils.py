@@ -8,10 +8,16 @@ from src.network.hardware import HardwareInventory
 
 
 def load_configuration(file_path):
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Configuration file not found: {file_path}")
+    # Get the directory of the current script
+    current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    with open(file_path, 'r') as config_file:
+    # Build the absolute path to the configuration file
+    config_file_path = os.path.join(current_dir, file_path)
+
+    if not os.path.exists(config_file_path):
+        raise FileNotFoundError(f"Configuration file not found: {config_file_path}")
+
+    with open(config_file_path, 'r') as config_file:
         config_data = json.load(config_file)
 
     return config_data
