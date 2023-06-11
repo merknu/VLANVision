@@ -22,6 +22,8 @@ class HardwareInventory:
         self.hardware_inventory = {}
 
     def add_hardware(self, hardware_id: str, model: str, manufacturer: str, serial_number: str, firmware_version: str):
+        if not all([hardware_id, model, manufacturer, serial_number, firmware_version]):
+            raise ValueError("All arguments must be provided and not be None")
         if hardware_id in self.hardware_inventory:
             raise ValueError("Hardware ID already exists")
         self.hardware_inventory[hardware_id] = Hardware(model, manufacturer, serial_number, firmware_version)

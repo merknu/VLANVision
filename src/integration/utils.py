@@ -13,6 +13,9 @@ def load_integration_credentials(filename):
     except FileNotFoundError:
         print(f"No such file or directory: '{filename}'")
         return None
+    except json.JSONDecodeError as jde:
+        print(f"Invalid JSON file: {filename}. Error: {jde}")
+        return None
 
 
 def initialize_integrations():

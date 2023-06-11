@@ -4,22 +4,30 @@
 import requests
 
 
+class APIError(Exception):
+    def __init__(self, status):
+        self.message = f"API call failed with status code: {status}"
+        super().__init__(self.message)
+
+
 class GrafanaIntegration:
     def __init__(self, grafana_url, api_key):
         self.grafana_url = grafana_url
         self.api_key = api_key
         self.headers = {
             'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
 
     def create_dashboard(self, dashboard_data):
-        """Create a new dashboard in Grafana."""
         response = requests.post(
             f'{self.grafana_url}/api/dashboards/db',
             json=dashboard_data,
             headers=self.headers
         )
+        if response.status_code != 200:
+            raise APIError(response.status_code)
         return response.json()
 
     def update_dashboard(self, dashboard_data):

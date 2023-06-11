@@ -4,57 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VLANVision - Network Management</title>
+    <title>VLAN Vision</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/png">
 </head>
 
 <body>
     <header>
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="VLANVision Logo" class="logo">
+        <div>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="VLAN Vision Logo">
+            <h1>VLAN Vision</h1>
+        </div>
         <nav>
             <ul>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#network">Network</a></li>
-                <li><a href="#security">Security</a></li>
-                <li><a href="#integration">Integration</a></li>
-                <li><a href="#help">Help</a></li>
+                <li><a href="#" class="dashboard-link">Dashboard</a></li>
+                <li class="dropdown">
+                    <a href="#">Tools</a>
+                    <div class="dropdown-menu">
+                        <a href="#" id="integrate-grafana-button">Integrate Grafana</a>
+                        <a href="#" id="integrate-node-red-button">Integrate Node-RED</a>
+                    </div>
+                </li>
+                <li><a href="#" class="modal-button" data-modal-target="#firewall-form-modal">Firewall Form</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section id="dashboard">
-            <h1>Dashboard</h1>
-            <!-- Add dashboard content here -->
-        </section>
-
-        <section id="network">
-            <h1>Network</h1>
-            <!-- Add network content here -->
-        </section>
-
-        <section id="security">
-            <h1>Security</h1>
-            <!-- Add security content here -->
-        </section>
-
-        <section id="integration">
-            <h1>Integration</h1>
-            <!-- Add integration content here -->
-        </section>
-
-        <section id="help">
-            <h1>Help</h1>
-            <!-- Add help content here -->
+        <section>
+            <h2>Dashboard</h2>
+            <div class="breadcrumb"></div>
+            <!-- Dashboard content goes here -->
+            <!-- Added div element to contain the sketchsketch.js canvas -->
+            <div id="vlanCanvas"></div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2023 VLANVision. All rights reserved.</p>
+        <p>©2023 VLAN Vision. All rights reserved.</p>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- Firewall Form Modal -->
+    <div id="firewall-form-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <form id="firewall-form" class="hidden">
+                <!-- Firewall form inputs go here -->
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+    </div>
+
 </body>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sketch.js') }}"></script>
 
 </html>

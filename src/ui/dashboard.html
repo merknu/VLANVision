@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Management Dashboard</title>
+    <!-- Add CSS and JavaScript files here -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLANVision - Network Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/png">
+</head>
+<body>
+    <h1>Network Management Dashboard</h1>
+
+    <section id="firewall">
+        <h2>Firewall</h2>
+        <p>Displays firewall rules and allows adding and removing rules.</p>
+        <!-- Display firewall rules here -->
+        <button id="add-firewall-rule-button">Add Rule</button>
+        <!-- Form to add a rule -->
+        <form id="firewall-form" class="hidden">
+            <label for="rule">Rule:</label><br>
+            <input type="text" id="rule" name="rule"><br>
+            <input type="submit" value="Submit">
+        </form>
+        <!-- Option to remove a rule -->
+    </section>
+
+    <!-- Other sections... -->
+
+</body>
+</html>
