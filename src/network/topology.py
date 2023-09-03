@@ -1,93 +1,85 @@
-# Path: /src/network/topology.py
-# This is the class for topology
-import sys
-from typing import Dict, List
 
-from src.network.hardware import Device as HardwareDevice
+from typing import Dict, List  # Added import for Dict and List type hinting
 
 
-class Device(HardwareDevice):
-    def __init__(self, device_id: str, device_type: str, name: str, ip_address: str, mac_address: str,
-                 model: str, manufacturer: str, serial_number: str, firmware_version: str):
-        super().__init__(device_id, model, manufacturer, serial_number, firmware_version, device_type, name, ip_address, mac_address)
-        self.name = name
-        self.ip_address = ip_address
-        self.mac_address = mac_address
-
-    def update_device(self, name: str, ip_address: str):
+# Class for handling device attributes
+# This class is focused on individual device attributes like name and IP address.
+class Device:
+    def __init__(self, name: str, ip_address: str):
+        # Initialize a new Device with a name and IP address.
         self.name = name
         self.ip_address = ip_address
 
-    def __str__(self):
-        return f"{self.device_type}: {self.name}, IP: {self.ip_address}, MAC: {self.mac_address}"
+    def update_device(self, name: str = None, ip_address: str = None):
+        # Update the device's name or IP address.
+        if name:
+            self.name = name
+        if ip_address:
+            self.ip_address = ip_address
+
+    def __str__(self) -> str:
+        # String representation of the Device.
+        return f"{self.name} ({self.ip_address})"
 
 
-class NetworkTopology:
+# New Class for handling topology-related functionalities
+# This class manages the topology of the network including creating and saving topologies.
+class TopologyManagement:
     def __init__(self):
-        self.devices: Dict[str, Device] = {}
+        # Initialize an empty topology.
+        self.topology = {}  # Using Dict for better organization
 
-    def add_device(self, device_id: str, device_type: str, name: str, ip_address: str, mac_address: str,
-                   model: str, manufacturer: str, serial_number: str, firmware_version: str):
-        if device_id in self.devices:
-            raise ValueError("Device ID already exists")
-        self.devices[device_id] = Device(device_id, device_type, name, ip_address, mac_address,
-                                         model, manufacturer, serial_number, firmware_version)
+    def create_topology(self, devices: Dict[str, Device]):
+        # Create a new topology with a dictionary of devices.
+        self.topology = devices
 
-    def remove_device(self, device_id: str):
-        if device_id not in self.devices:
-            raise ValueError("Device ID not found")
-        del self.devices[device_id]
+    def save_topology(self):
+        # Save the current topology.
+        # Code to save topology
+        pass
 
-    def update_device(self, device_id: str, name: str, ip_address: str):
-        if device_id not in self.devices:
-            raise ValueError("Device ID not found")
-        self.devices[device_id].update_device(name, ip_address)
 
-    def get_device(self, device_id: str) -> Device:
-        if device_id not in self.devices:
-            raise ValueError("Device ID not found")
-        return self.devices[device_id]
+# Modified NetworkTopology class
+# This class is now focused on managing devices in the network.
+class NetworkTopology(TopologyManagement):  # Inherits from TopologyManagement
+    def __init__(self):
+        # Initialize an empty list of devices.
+        super().__init__()  # Initialize parent class
+        self.devices: Dict[str, Device] = {}  # Explicit type hinting
+
+    def add_device(self, device: Device):
+        # Add a new device to the network.
+        self.devices[device.name] = device  # Using Dict for better organization
+
+    def remove_device(self, device_name: str):
+        # Remove a device from the network by its name.
+        if device_name in self.devices:
+            del self.devices[device_name]
+
+    def update_device(self, device_name: str, new_device: Device):
+        # Update a device in the network.
+        self.devices[device_name] = new_device
+
+    def get_device(self, device_name: str) -> Device:
+        # Get a device by its name.
+        return self.devices.get(device_name, None)
 
     def list_devices(self) -> List[str]:
-        return [str(device) for device in self.devices.values()]
+        # List all device names in the network.
+        return list(self.devices.keys())
 
 
-def create_topology(file: str) -> List[str]:
-    """Create a topology from a given file."""
-    with open(file, 'r') as f:
-        lines = f.readlines()
-
-    # Handle the case where the file is empty
-    if not lines:
-        raise ValueError("The provided file is empty.")
-
-    node_list = []
-    for line in lines:
-        node_list.append(line.strip())
-
-    return node_list
-
-
-def save_topology(file: str, topology: List[str]):
-    """Save a topology to a given file."""
-    try:
-        with open(file, 'w') as f:
-            for node in topology:
-                f.write(node + '\n')
-    except IOError:
-        print(f"Could not write to file: {file}")
-
-
+# Main function for testing
 def main():
-    """Main function to create and save topology."""
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
+    net_topo = NetworkTopology()
+    dev1 = Device("Device1", "192.168.1.1")
+    dev2 = Device("Device2", "192.168.1.2")
 
-    # Create topology
-    topology = create_topology(input_file)
+    net_topo.add_device(dev1)
+    net_topo.add_device(dev2)
 
-    # Save topology
-    save_topology(output_file, topology)
+    print(net_topo.list_devices())
+    print(net_topo.get_device("Device1"))
 
 
 if __name__ == "__main__":
