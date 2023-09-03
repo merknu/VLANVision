@@ -16,7 +16,7 @@ setup(
     description="A network management software that simplifies managing networks with powerful integrations.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/vlanvision",
+    url="https://github.com/merknu/vlanvision",
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
