@@ -8,6 +8,7 @@ from flask import Flask, render_template, request, jsonify, abort, session
 from flask_login import LoginManager, login_required, current_user
 from werkzeug.exceptions import BadRequest, InternalServerError
 from functools import wraps
+from flask import redirect, url_for
 
 # Import our models and managers
 from src.database import db, User, VLAN, Device, FirewallRule, init_db
@@ -136,7 +137,14 @@ class VLANVisionApp:
         # Web routes
         @self.app.route('/')
         def index():
-            return render_template('index.html')
+            # Show landing page for non-authenticated users
+            if not current_user.is_authenticated:
+                return render_template('landing.html')
+            return redirect(url_for('dashboard'))
+        
+        @self.app.route('/landing')
+        def landing():
+            return render_template('landing.html')
         
         @self.app.route('/dashboard')
         @login_required
@@ -145,10 +153,21 @@ class VLANVisionApp:
                 # Get summary data for dashboard
                 vlans = self.vlan_manager.list_vlans()
                 vlan_count = len(vlans)
-                return render_template('dashboard.html', vlan_count=vlan_count)
+                
+                # Get device count
+                device_count = Device.query.count()
+                
+                # Get active alerts (would come from AlertEvent in real implementation)
+                active_alerts = 3  # Mock data for now
+                
+                # Use modern dashboard
+                return render_template('modern_dashboard.html', 
+                    vlan_count=vlan_count,
+                    device_count=device_count,
+                    active_alerts=active_alerts)
             except Exception as e:
                 logging.error(f"Error loading dashboard: {e}")
-                return render_template('dashboard.html', error="Error loading dashboard data")
+                return render_template('modern_dashboard.html', error="Error loading dashboard data")
         
         @self.app.route('/network')
         @login_required

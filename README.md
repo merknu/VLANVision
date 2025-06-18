@@ -1,80 +1,119 @@
 # VLANVision
 
-> 🚧 This project is currently under development and may not be fully functional.
+<div align="center">
 
-## Overview
+![VLANVision](https://img.shields.io/badge/VLANVision-Network%20Management-blue)
+![Python](https://img.shields.io/badge/Python-3.8%2B-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Windows](https://img.shields.io/badge/Windows-Ready-0078D6?logo=windows)
+![Linux](https://img.shields.io/badge/Linux-Ready-FCC624?logo=linux&logoColor=black)
 
-VLANVision is a comprehensive network management solution designed to simplify network administration. With seamless integration of powerful tools like Grafana and Node-RED, it offers a robust set of features wrapped in an intuitive user interface.
+**Enterprise Network Management Made Simple**
 
-## Features
+[🚀 Quick Start](#-quick-installation) • [📖 Documentation](../../wiki) • [🐛 Report Bug](../../issues) • [✨ Request Feature](../../issues)
 
-- 📊 **Intuitive Dashboard**: Key performance indicators and visualizations at your fingertips.
-- 🌐 **VLAN Management**: Hassle-free management of VLANs, devices, and configurations.
-- 🛠️ **Tool Integration**: Advanced monitoring and customization with Grafana and Node-RED.
-- 📱 **Responsive Design**: Optimized for desktop, tablet, and mobile devices.
-- ♿ **Accessibility**: Built with accessibility and customization in mind.
+</div>
 
-## Requirements
+## 🌟 Overview
 
-- Python 3.8 or higher
-- pip (Python package manager)
-- Virtual environment (recommended)
+VLANVision is a powerful, enterprise-grade network management system that's incredibly easy to deploy. Monitor your entire network infrastructure, manage VLANs, track devices, and receive real-time alerts - all through a beautiful, modern interface.
 
-## Installation
+## ✨ Key Features
 
-### 1. **Clone the Repository**
+### 🎯 Core Capabilities
+- **🔍 Auto-Discovery**: Automatically discover all devices on your network using SNMP, ARP, and CDP/LLDP
+- **📊 Real-time Monitoring**: Track device health, bandwidth, CPU, memory, and interface statistics
+- **🔔 Smart Alerts**: Threshold-based alerting with email, webhook, and SMS notifications
+- **🌐 VLAN Management**: Create, modify, and assign VLANs across your infrastructure
+- **🛡️ Security**: Built-in firewall rule management and access control
+- **📈 Network Visualization**: Interactive topology maps with real-time status updates
+
+### 🚀 What's New
+- **⚡ 5-Minute Windows Installation**: One-line PowerShell command installs everything
+- **🎨 Modern UI**: Beautiful, responsive interface that works on any device
+- **📱 Mobile Ready**: Full functionality on tablets and smartphones
+- **🌙 Dark Mode**: Easy on the eyes during those late-night troubleshooting sessions
+- **🔄 Auto-Updates**: Keep your system current with automatic updates
+
+## 💡 Why VLANVision?
+
+| Feature | VLANVision | SolarWinds | PRTG | Nagios |
+|---------|------------|------------|------|---------|
+| **Easy Installation** | ✅ 5 minutes | ❌ Hours | ❌ Complex | ❌ Very Complex |
+| **Windows Service** | ✅ Automated | ⚠️ Manual | ✅ Yes | ❌ No |
+| **Modern UI** | ✅ Beautiful | ❌ Dated | ⚠️ OK | ❌ Basic |
+| **Free & Open Source** | ✅ Yes | ❌ Expensive | ❌ Expensive | ✅ Yes |
+| **Real-time Monitoring** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Auto-Discovery** | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ Limited |
+
+## 🚀 Quick Installation
+
+### Windows Server (Recommended)
+Open **PowerShell as Administrator** and run:
+```powershell
+iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/merknu/VLANVision/main/windows/quick-install.ps1'))
+```
+**That's it!** VLANVision will be installed and running in under 5 minutes. [Full Windows Guide](WINDOWS_INSTALL.md)
+
+### Linux/Docker
+```bash
+# Using Docker (Recommended)
+docker run -d -p 80:80 --name vlanvision merknu/vlanvision:latest
+
+# Or using Docker Compose
+curl -O https://raw.githubusercontent.com/merknu/VLANVision/main/docker-compose.yml
+docker-compose up -d
+```
+
+### Manual Installation
 ```bash
 git clone https://github.com/merknu/VLANVision.git
 cd VLANVision
+./setup_dev.sh  # Automated setup script
 ```
 
-### 2. **Create Virtual Environment**
-```bash
-# Create virtual environment
-python -m venv venv
+## 🖥️ Screenshots
 
-# Activate virtual environment
-# On Linux/Mac:
-source venv/bin/activate
+<div align="center">
+<table>
+<tr>
+<td width="50%">
 
-# On Windows:
-venv\Scripts\activate
-```
+### Dashboard
+<img src="https://via.placeholder.com/400x300" alt="Dashboard">
 
-### 3. **Install Dependencies**
-```bash
-# Upgrade pip
-python -m pip install --upgrade pip
+Real-time network metrics at a glance
 
-# Install project dependencies
-pip install -r requirements.txt
+</td>
+<td width="50%">
 
-# Install project in development mode
-pip install -e .
-```
+### Network Topology
+<img src="https://via.placeholder.com/400x300" alt="Topology">
 
-### 4. **Environment Setup**
-```bash
-# Copy template environment file
-cp template.env .env
+Interactive network visualization
 
-# Edit .env with your configuration
-# (Add your Grafana API key, database settings, etc.)
-```
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-### 5. **Run the Application**
-```bash
-# Start the development server
-python -m src.main
+### Device Management
+<img src="https://via.placeholder.com/400x300" alt="Devices">
 
-# Or use the installed command
-vlanvision
+Complete device inventory and control
 
-# For development with debug mode
-python -m src.main --debug
-```
+</td>
+<td width="50%">
 
-The application will be available at `http://localhost:5000`
+### Alert Center
+<img src="https://via.placeholder.com/400x300" alt="Alerts">
+
+Smart alerting with multiple channels
+
+</td>
+</tr>
+</table>
+</div>
 
 ## Configuration
 
