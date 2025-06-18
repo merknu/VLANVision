@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Topology - VLANVision</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: #667eea;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: white;
+            padding: 1rem;
+            overflow-y: auto;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 1rem;
+            position: relative;
+        }
+        
+        #network-container {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            margin-bottom: 1rem;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .device-list {
+            margin-top: 1rem;
+        }
+        
+        .device-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .device-item:hover {
+            background: #e9ecef;
+        }
+        
+        .device-item.selected {
+            background: #667eea;
+            color: white;
+        }
+        
+        .device-type {
+            font-size: 0.875rem;
+            opacity: 0.7;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Network Topology Visualization</h1>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="controls">
+                <button class="btn" onclick="refreshTopology()">Refresh</button>
+                <button class="btn" onclick="autoLayout()">Auto Layout</button>
+            </div>
+            
+            <h3>Devices</h3>
+            <div id="device-list" class="device-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading devices...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div id="network-container"></div>
+            
+            <div class="legend">
+                <h4>Device Types</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <span>Switch</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>Router</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span>Firewall</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2ecc71;"></div>
+                    <span>Server</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9b59b6;"></div>
+                    <span>Access Point</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95a5a6;"></div>
+                    <span>Unknown</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Network visualization
+        let network = null;
+        let nodes = null;
+        let edges = null;
+        let devices = [];
+        
+        // Device type colors
+        const deviceColors = {
+            'switch': '#3498db',
+            'router': '#e74c3c',
+            'firewall': '#f39c12',
+            'server': '#2ecc71',
+            'access_point': '#9b59b6',
+            'unknown': '#95a5a6'
+        };
+        
+        // Device type shapes
+        const deviceShapes = {
+            'switch': 'box',
+            'router': 'diamond',
+            'firewall': 'triangle',
+            'server': 'database',
+            'access_point': 'star',
+            'unknown': 'circle'
+        };
+        
+        // Initialize network visualization
+        function initNetwork() {
+            const container = document.getElementById('network-container');
+            
+            nodes = new vis.DataSet();
+            edges = new vis.DataSet();
+            
+            const data = {
+                nodes: nodes,
+                edges: edges
+            };
+            
+            const options = {
+                nodes: {
+                    font: {
+                        size: 12,
+                        color: '#343434'
+                    },
+                    borderWidth: 2,
+                    shadow: true
+                },
+                edges: {
+                    width: 2,
+                    color: { inherit: 'from' },
+                    smooth: {
+                        type: 'continuous'
+                    }
+                },
+                physics: {
+                    enabled: true,
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 95,
+                        springConstant: 0.04,
+                        damping: 0.09
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 200
+                }
+            };
+            
+            network = new vis.Network(container, data, options);
+            
+            // Handle node selection
+            network.on('selectNode', function(params) {
+                if (params.nodes.length > 0) {
+                    const nodeId = params.nodes[0];
+                    selectDevice(nodeId);
+                }
+            });
+        }
+        
+        // Load devices from API
+        async function loadDevices() {
+            try {
+                const response = await fetch('/api/network/devices', {
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load devices');
+                }
+                
+                const data = await response.json();
+                devices = data.devices;
+                
+                updateDeviceList();
+                updateNetworkVisualization();
+                
+            } catch (error) {
+                console.error('Error loading devices:', error);
+                document.getElementById('device-list').innerHTML = 
+                    '<p style="color: red;">Error loading devices</p>';
+            }
+        }
+        
+        // Update device list in sidebar
+        function updateDeviceList() {
+            const deviceList = document.getElementById('device-list');
+            
+            if (devices.length === 0) {
+                deviceList.innerHTML = '<p>No devices found</p>';
+                return;
+            }
+            
+            deviceList.innerHTML = devices.map(device => `
+                <div class="device-item" onclick="selectDevice(${device.id})" data-id="${device.id}">
+                    <div><strong>${device.hostname || device.ip_address}</strong></div>
+                    <div class="device-type">${device.device_type || 'Unknown'} - ${device.ip_address}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Update network visualization
+        function updateNetworkVisualization() {
+            // Clear existing nodes and edges
+            nodes.clear();
+            edges.clear();
+            
+            // Add nodes for each device
+            devices.forEach(device => {
+                const deviceType = device.device_type || 'unknown';
+                nodes.add({
+                    id: device.id,
+                    label: device.hostname || device.ip_address,
+                    title: `${device.hostname || 'Unknown'}\n${device.ip_address}\nType: ${deviceType}\nMAC: ${device.mac_address || 'Unknown'}`,
+                    color: deviceColors[deviceType] || deviceColors['unknown'],
+                    shape: deviceShapes[deviceType] || deviceShapes['unknown']
+                });
+            });
+            
+            // Add edges based on VLANs (simplified - in real implementation, 
+            // this would be based on actual network topology data)
+            const vlanGroups = {};
+            devices.forEach(device => {
+                if (device.vlan_id) {
+                    if (!vlanGroups[device.vlan_id]) {
+                        vlanGroups[device.vlan_id] = [];
+                    }
+                    vlanGroups[device.vlan_id].push(device.id);
+                }
+            });
+            
+            // Connect devices in the same VLAN
+            Object.values(vlanGroups).forEach(group => {
+                for (let i = 0; i < group.length - 1; i++) {
+                    for (let j = i + 1; j < group.length; j++) {
+                        edges.add({
+                            from: group[i],
+                            to: group[j],
+                            dashes: true,
+                            color: { opacity: 0.5 }
+                        });
+                    }
+                }
+            });
+        }
+        
+        // Select a device
+        function selectDevice(deviceId) {
+            // Update sidebar selection
+            document.querySelectorAll('.device-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            const selectedItem = document.querySelector(`[data-id="${deviceId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+            
+            // Focus on the device in the network
+            network.focus(deviceId, {
+                scale: 1.5,
+                animation: {
+                    duration: 500,
+                    easingFunction: 'easeInOutQuad'
+                }
+            });
+        }
+        
+        // Refresh topology
+        async function refreshTopology() {
+            await loadDevices();
+        }
+        
+        // Auto layout
+        function autoLayout() {
+            network.stabilize();
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initNetwork();
+            loadDevices();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(refreshTopology, 30000);
+        });
+    </script>
+</body>
+</html>

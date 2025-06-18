@@ -1,6 +1,7 @@
 # Path: src/ui/app.py
 # Enhanced Flask application with better error handling, security, and structure
 import os
+import time
 import logging
 from typing import Dict, Any, Optional
 from flask import Flask, render_template, request, jsonify, abort, session
@@ -9,22 +10,25 @@ from werkzeug.exceptions import BadRequest, InternalServerError
 from functools import wraps
 
 # Import our models and managers
-from src.models.user import User
+from src.database import db, User, VLAN, Device, FirewallRule, init_db
 from src.network.vlan import VLANManager
 from src.security.firewall import FirewallManager
 from src.integration.grafana import GrafanaIntegration
 from src.integration.node_red import NodeRedIntegration
+from src.auth import auth_bp
+from src.network.discovery import NetworkDiscovery
 
 
 class VLANVisionApp:
     """Main application class for VLANVision."""
     
     def __init__(self, config_path: str = None):
-        self.app = Flask(__name__, template_folder='../ui')
+        self.app = Flask(__name__, template_folder='../../templates')
         self.config_app()
         self.setup_logging()
         self.setup_login_manager()
         self.setup_managers()
+        self.register_blueprints()
         self.register_routes()
         self.register_error_handlers()
     
@@ -32,9 +36,16 @@ class VLANVisionApp:
         """Configure Flask application."""
         self.app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
         self.app.config['WTF_CSRF_ENABLED'] = True
-        self.app.config['SESSION_COOKIE_SECURE'] = True
+        self.app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
         self.app.config['SESSION_COOKIE_HTTPONLY'] = True
         self.app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+        
+        # Database configuration
+        self.app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///vlanvision.db')
+        self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        
+        # Initialize database
+        init_db(self.app)
     
     def setup_logging(self):
         """Setup application logging."""
@@ -53,12 +64,13 @@ class VLANVisionApp:
         
         @self.login_manager.user_loader
         def load_user(user_id):
-            return User.get(user_id)
+            return User.query.get(int(user_id))
     
     def setup_managers(self):
         """Initialize business logic managers."""
-        self.vlan_manager = VLANManager()
-        self.firewall_manager = FirewallManager("firewall_data.json")
+        with self.app.app_context():
+            self.vlan_manager = VLANManager()
+            self.firewall_manager = FirewallManager()
         
         # Setup integrations if configured
         grafana_url = os.environ.get('GRAFANA_URL')
@@ -74,6 +86,10 @@ class VLANVisionApp:
             self.node_red_integration = NodeRedIntegration(node_red_url, node_red_key)
         else:
             self.node_red_integration = None
+    
+    def register_blueprints(self):
+        """Register Flask blueprints."""
+        self.app.register_blueprint(auth_bp)
     
     def require_json(f):
         """Decorator to ensure request has JSON content."""
@@ -138,6 +154,11 @@ class VLANVisionApp:
         @login_required
         def network():
             return render_template('network.html')
+        
+        @self.app.route('/network/topology')
+        @login_required
+        def network_topology():
+            return render_template('network_visualization.html')
         
         @self.app.route('/security')
         @login_required
@@ -344,6 +365,134 @@ class VLANVisionApp:
             except Exception as e:
                 logging.error(f"Error listing Node-RED flows: {e}")
                 abort(500, description="Error communicating with Node-RED")
+        
+        # Network Discovery API routes
+        @self.app.route('/api/network/discover', methods=['POST'])
+        @login_required
+        @self.require_json
+        def discover_network():
+            """Discover devices on a network range."""
+            try:
+                network_range = request.json.get('network_range')
+                if not network_range:
+                    abort(400, description="Missing network_range parameter")
+                
+                # Validate network range
+                import ipaddress
+                try:
+                    ipaddress.ip_network(network_range, strict=False)
+                except ValueError:
+                    abort(400, description="Invalid network range format")
+                
+                # Get SNMP community from request or use default
+                snmp_community = request.json.get('snmp_community', os.environ.get('SNMP_COMMUNITY', 'public'))
+                
+                # Perform discovery
+                discovery = NetworkDiscovery(snmp_community=snmp_community)
+                devices = discovery.discover_network(network_range)
+                
+                # Save to database
+                saved_count = discovery.save_to_database()
+                
+                return jsonify({
+                    "message": f"Discovery completed. Found {len(devices)} devices, saved {saved_count} new devices.",
+                    "devices_found": len(devices),
+                    "devices_saved": saved_count,
+                    "devices": [
+                        {
+                            "ip_address": d.ip_address,
+                            "hostname": d.hostname,
+                            "mac_address": d.mac_address,
+                            "device_type": d.device_type,
+                            "manufacturer": d.manufacturer,
+                            "location": d.location
+                        } for d in devices
+                    ]
+                })
+                
+            except Exception as e:
+                logging.error(f"Network discovery failed: {e}")
+                abort(500, description=f"Discovery failed: {str(e)}")
+        
+        @self.app.route('/api/network/devices', methods=['GET'])
+        @login_required
+        def list_network_devices():
+            """List all network devices."""
+            try:
+                devices = Device.query.all()
+                return jsonify({
+                    "devices": [device.to_dict() for device in devices],
+                    "count": len(devices)
+                })
+            except Exception as e:
+                logging.error(f"Error listing devices: {e}")
+                abort(500, description="Error retrieving devices")
+        
+        @self.app.route('/api/network/devices/<int:device_id>', methods=['GET'])
+        @login_required
+        def get_network_device(device_id: int):
+            """Get a specific network device."""
+            try:
+                device = Device.query.get(device_id)
+                if not device:
+                    abort(404, description="Device not found")
+                
+                return jsonify(device.to_dict())
+            except Exception as e:
+                logging.error(f"Error getting device {device_id}: {e}")
+                abort(500, description="Error retrieving device")
+        
+        @self.app.route('/api/network/devices/<int:device_id>', methods=['PUT'])
+        @login_required
+        @self.require_json
+        def update_network_device(device_id: int):
+            """Update a network device."""
+            try:
+                device = Device.query.get(device_id)
+                if not device:
+                    abort(404, description="Device not found")
+                
+                # Update allowed fields
+                allowed_fields = ['hostname', 'location', 'device_type', 'status']
+                for field in allowed_fields:
+                    if field in request.json:
+                        setattr(device, field, request.json[field])
+                
+                db.session.commit()
+                
+                logging.info(f"Device {device_id} updated by {current_user.username}")
+                return jsonify({
+                    "message": "Device updated successfully",
+                    "device": device.to_dict()
+                })
+                
+            except Exception as e:
+                logging.error(f"Error updating device {device_id}: {e}")
+                abort(500, description="Error updating device")
+        
+        @self.app.route('/api/network/devices/<int:device_id>/assign-vlan', methods=['POST'])
+        @login_required
+        @self.require_json
+        def assign_device_to_vlan(device_id: int):
+            """Assign a device to a VLAN."""
+            try:
+                vlan_id = request.json.get('vlan_id')
+                if not vlan_id:
+                    abort(400, description="Missing vlan_id parameter")
+                
+                device = self.vlan_manager.add_device_to_vlan(device_id, vlan_id)
+                
+                logging.info(f"Device {device_id} assigned to VLAN {vlan_id} by {current_user.username}")
+                return jsonify({
+                    "message": "Device assigned to VLAN successfully",
+                    "device": device.to_dict()
+                })
+                
+            except ValueError as e:
+                abort(404, description=str(e))
+            except Exception as e:
+                logging.error(f"Error assigning device to VLAN: {e}")
+                abort(500, description="Error assigning device to VLAN")
     
     def register_error_handlers(self):
         """Register error handlers."""

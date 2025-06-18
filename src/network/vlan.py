@@ -1,49 +1,87 @@
 # Path: /src/network/vlan.py
-# This is the class for vlan
-class VLAN:
-    def __init__(self, vlan_id, name, description):
-        self.vlan_id = vlan_id
-        self.name = name
-        self.description = description
-        self.devices = []
-
-    def add_device(self, device):
-        self.devices.append(device)
-
-    def remove_device(self, device):
-        self.devices.remove(device)
-
-    def update_vlan(self, name, description):
-        self.name = name
-        self.description = description
-
-    def __str__(self):
-        return f"VLAN ID: {self.vlan_id}, Name: {self.name}, Description: {self.description}"
+# VLAN management with database integration
+from src.database import db, VLAN, Device
+from typing import List, Dict, Any
 
 
 class VLANManager:
-    def __init__(self):
-        self.vlans = {}
-
-    def create_vlan(self, vlan_id, name, description):
-        if vlan_id in self.vlans:
-            raise ValueError("VLAN ID already exists")
-        self.vlans[vlan_id] = VLAN(vlan_id, name, description)
-
-    def delete_vlan(self, vlan_id):
-        if vlan_id not in self.vlans:
-            raise ValueError("VLAN ID not found")
-        del self.vlans[vlan_id]
-
-    def update_vlan(self, vlan_id, name, description):
-        if vlan_id not in self.vlans:
-            raise ValueError("VLAN ID not found")
-        self.vlans[vlan_id].update_vlan(name, description)
-
-    def get_vlan(self, vlan_id):
-        if vlan_id not in self.vlans:
-            raise ValueError("VLAN ID not found")
-        return self.vlans[vlan_id]
-
-    def list_vlans(self):
-        return [str(vlan) for vlan in self.vlans.values()]
+    """Manager class for VLAN operations using database."""
+    
+    def create_vlan(self, vlan_id: int, name: str, description: str) -> VLAN:
+        """Create a new VLAN."""
+        # Check if VLAN ID already exists
+        existing = VLAN.query.filter_by(vlan_id=vlan_id).first()
+        if existing:
+            raise ValueError(f"VLAN ID {vlan_id} already exists")
+        
+        # Create new VLAN
+        vlan = VLAN(
+            vlan_id=vlan_id,
+            name=name,
+            description=description
+        )
+        
+        db.session.add(vlan)
+        db.session.commit()
+        
+        return vlan
+    
+    def delete_vlan(self, vlan_id: int) -> None:
+        """Delete a VLAN."""
+        vlan = VLAN.query.filter_by(vlan_id=vlan_id).first()
+        if not vlan:
+            raise ValueError(f"VLAN ID {vlan_id} not found")
+        
+        db.session.delete(vlan)
+        db.session.commit()
+    
+    def update_vlan(self, vlan_id: int, name: str, description: str) -> VLAN:
+        """Update a VLAN."""
+        vlan = VLAN.query.filter_by(vlan_id=vlan_id).first()
+        if not vlan:
+            raise ValueError(f"VLAN ID {vlan_id} not found")
+        
+        vlan.name = name
+        vlan.description = description
+        
+        db.session.commit()
+        return vlan
+    
+    def get_vlan(self, vlan_id: int) -> VLAN:
+        """Get a VLAN by ID."""
+        vlan = VLAN.query.filter_by(vlan_id=vlan_id).first()
+        if not vlan:
+            raise ValueError(f"VLAN ID {vlan_id} not found")
+        
+        return vlan
+    
+    def list_vlans(self) -> List[Dict[str, Any]]:
+        """List all VLANs."""
+        vlans = VLAN.query.all()
+        return [vlan.to_dict() for vlan in vlans]
+    
+    def add_device_to_vlan(self, device_id: int, vlan_id: int) -> Device:
+        """Add a device to a VLAN."""
+        device = Device.query.get(device_id)
+        if not device:
+            raise ValueError(f"Device ID {device_id} not found")
+        
+        vlan = VLAN.query.filter_by(vlan_id=vlan_id).first()
+        if not vlan:
+            raise ValueError(f"VLAN ID {vlan_id} not found")
+        
+        device.vlan_id = vlan.id
+        db.session.commit()
+        
+        return device
+    
+    def remove_device_from_vlan(self, device_id: int) -> Device:
+        """Remove a device from its VLAN."""
+        device = Device.query.get(device_id)
+        if not device:
+            raise ValueError(f"Device ID {device_id} not found")
+        
+        device.vlan_id = None
+        db.session.commit()
+        
+        return device

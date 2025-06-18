@@ -1,71 +1,89 @@
 # Path: /src/security/firewall.py
-# This is the class for firewall rule and firewall manager class
-import json
-
-
-class FirewallRule:
-    def __init__(self, src_ip, dest_ip, src_port, dest_port, protocol, action):
-        self.src_ip = src_ip
-        self.dest_ip = dest_ip
-        self.src_port = src_port
-        self.dest_port = dest_port
-        self.protocol = protocol
-        self.action = action
-
-    def to_dict(self):
-        return {
-            'src_ip': self.src_ip,
-            'dest_ip': self.dest_ip,
-            'src_port': self.src_port,
-            'dest_port': self.dest_port,
-            'protocol': self.protocol,
-            'action': self.action
-        }
-
-    @staticmethod
-    def from_dict(rule_data):
-        return FirewallRule(
-            rule_data['src_ip'],
-            rule_data['dest_ip'],
-            rule_data['src_port'],
-            rule_data['dest_port'],
-            rule_data['protocol'],
-            rule_data['action']
-        )
+# Firewall management with database integration
+from src.database import db, FirewallRule
+from typing import List, Dict, Any
 
 
 class FirewallManager:
-    def __init__(self, firewall_data_file):
-        self.firewall_data_file = firewall_data_file
-        self.rules = self.load_rules()
-
-    def load_rules(self):
-        try:
-            with open(self.firewall_data_file, 'r') as file:
-                firewall_data = json.load(file)
-        except FileNotFoundError:
-            firewall_data = []
-
-        rules = []
-        for rule_dict in firewall_data:
-            rule = FirewallRule.from_dict(rule_dict)
-            rules.append(rule)
-
-        return rules
-
-    def save_rules(self):
-        firewall_data = [rule.to_dict() for rule in self.rules]
-        with open(self.firewall_data_file, 'w') as file:
-            json.dump(firewall_data, file, indent=2)
-
-    def add_rule(self, src_ip, dest_ip, src_port, dest_port, protocol, action):
-        rule = FirewallRule(src_ip, dest_ip, src_port, dest_port, protocol, action)
-        self.rules.append(rule)
-        self.save_rules()
-
-    def remove_rule(self, index):
-        if 0 <= index < len(self.rules):
-            del self.rules[index]
-            self.save_rules()
-        else:
-            raise ValueError(f"Invalid rule index. Valid indices are from 0 to {len(self.rules) - 1}.")
+    """Manager class for firewall rules using database."""
+    
+    def __init__(self, firewall_data_file=None):
+        """Initialize FirewallManager. The file parameter is kept for backwards compatibility."""
+        # Load existing rules from database
+        self.rules = FirewallRule.query.all()
+    
+    def add_rule(self, src_ip: str, dest_ip: str, src_port: int, dest_port: int, 
+                 protocol: str, action: str, name: str = None) -> FirewallRule:
+        """Add a new firewall rule."""
+        rule = FirewallRule(
+            name=name,
+            src_ip=src_ip,
+            dest_ip=dest_ip,
+            src_port=src_port,
+            dest_port=dest_port,
+            protocol=protocol.upper(),
+            action=action.upper()
+        )
+        
+        db.session.add(rule)
+        db.session.commit()
+        
+        # Update local cache
+        self.rules = FirewallRule.query.all()
+        
+        return rule
+    
+    def remove_rule(self, rule_id: int) -> None:
+        """Remove a firewall rule by ID."""
+        rule = FirewallRule.query.get(rule_id)
+        if not rule:
+            raise ValueError(f"Rule with ID {rule_id} not found")
+        
+        db.session.delete(rule)
+        db.session.commit()
+        
+        # Update local cache
+        self.rules = FirewallRule.query.all()
+    
+    def update_rule(self, rule_id: int, **kwargs) -> FirewallRule:
+        """Update a firewall rule."""
+        rule = FirewallRule.query.get(rule_id)
+        if not rule:
+            raise ValueError(f"Rule with ID {rule_id} not found")
+        
+        # Update fields if provided
+        for field, value in kwargs.items():
+            if hasattr(rule, field):
+                setattr(rule, field, value)
+        
+        db.session.commit()
+        
+        # Update local cache
+        self.rules = FirewallRule.query.all()
+        
+        return rule
+    
+    def get_rule(self, rule_id: int) -> FirewallRule:
+        """Get a specific firewall rule."""
+        rule = FirewallRule.query.get(rule_id)
+        if not rule:
+            raise ValueError(f"Rule with ID {rule_id} not found")
+        
+        return rule
+    
+    def list_rules(self) -> List[Dict[str, Any]]:
+        """List all firewall rules."""
+        rules = FirewallRule.query.order_by(FirewallRule.priority.desc()).all()
+        return [rule.to_dict() for rule in rules]
+    
+    def enable_rule(self, rule_id: int) -> FirewallRule:
+        """Enable a firewall rule."""
+        return self.update_rule(rule_id, enabled=True)
+    
+    def disable_rule(self, rule_id: int) -> FirewallRule:
+        """Disable a firewall rule."""
+        return self.update_rule(rule_id, enabled=False)
+    
+    def set_rule_priority(self, rule_id: int, priority: int) -> FirewallRule:
+        """Set the priority of a firewall rule."""
+        return self.update_rule(rule_id, priority=priority)
