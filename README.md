@@ -48,28 +48,56 @@ VLANVision is a powerful, enterprise-grade network management system that's incr
 
 ## 🚀 Quick Installation
 
-### Windows Server (Recommended)
+### Prerequisites
+- Python 3.8 or higher
+- pip (Python package manager)
+- Virtual environment (recommended)
+
+### Windows Installation
 Open **PowerShell as Administrator** and run:
 ```powershell
-iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/merknu/VLANVision/main/windows/quick-install.ps1'))
-```
-**That's it!** VLANVision will be installed and running in under 5 minutes. [Full Windows Guide](WINDOWS_INSTALL.md)
-
-### Linux/Docker
-```bash
-# Using Docker (Recommended)
-docker run -d -p 80:80 --name vlanvision merknu/vlanvision:latest
-
-# Or using Docker Compose
-curl -O https://raw.githubusercontent.com/merknu/VLANVision/main/docker-compose.yml
-docker-compose up -d
-```
-
-### Manual Installation
-```bash
+# Clone the repository
 git clone https://github.com/merknu/VLANVision.git
 cd VLANVision
-./setup_dev.sh  # Automated setup script
+
+# Run the automated Windows installer
+.\windows\quick-install.ps1
+```
+[Full Windows Guide](WINDOWS_INSTALL.md)
+
+### Linux/macOS Installation
+```bash
+# Clone the repository
+git clone https://github.com/merknu/VLANVision.git
+cd VLANVision
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy environment configuration
+cp template.env .env
+
+# Initialize the database
+python -m src.database
+
+# Run the application
+python run.py
+```
+
+### Docker Installation
+```bash
+# Using Docker Compose (Recommended)
+git clone https://github.com/merknu/VLANVision.git
+cd VLANVision
+docker-compose up -d
+
+# Or build manually
+docker build -t vlanvision .
+docker run -d -p 5000:5000 --name vlanvision vlanvision
 ```
 
 ## 🖥️ Screenshots
