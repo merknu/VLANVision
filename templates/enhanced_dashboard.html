@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLANVision - Network Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-container {
+            padding: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon.vlans { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.devices { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.alerts { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .stat-icon.traffic { background: linear-gradient(135deg, #30cfd0, #330867); }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .device-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .device-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .device-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-active { background: var(--success-color); }
+        .status-inactive { background: var(--danger-color); }
+        .status-warning { background: var(--warning-color); }
+
+        .action-button {
+            border-radius: 20px;
+            padding: 8px 20px;
+            border: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .vlan-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .alert-item {
+            border-left: 4px solid var(--danger-color);
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .network-topology {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-diagram-3-fill text-primary"></i>
+                <strong>VLANVision</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/network">
+                            <i class="bi bi-diagram-3"></i> Network
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/security">
+                            <i class="bi bi-shield-lock"></i> Security
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/integration">
+                            <i class="bi bi-plug"></i> Integrations
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings</a></li>
+                            <li><a class="dropdown-item" href="/auth/logout"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon vlans">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <div class="stat-value" id="vlanCount">0</div>
+                    <div class="stat-label">Active VLANs</div>
+                    <small class="text-success"><i class="bi bi-arrow-up"></i> 12% from last week</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon devices">
+                        <i class="bi bi-router"></i>
+                    </div>
+                    <div class="stat-value" id="deviceCount">0</div>
+                    <div class="stat-label">Network Devices</div>
+                    <small class="text-success"><i class="bi bi-arrow-up"></i> 8% from last week</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon alerts">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value" id="alertCount">0</div>
+                    <div class="stat-label">Active Alerts</div>
+                    <small class="text-danger"><i class="bi bi-arrow-up"></i> 2 new alerts</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon traffic">
+                        <i class="bi bi-activity"></i>
+                    </div>
+                    <div class="stat-value">98%</div>
+                    <div class="stat-label">Network Uptime</div>
+                    <small class="text-muted">Last 30 days</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mt-4">
+            <div class="col-lg-8">
+                <div class="chart-container">
+                    <h5 class="mb-4">Network Traffic Overview</h5>
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="chart-container">
+                    <h5 class="mb-4">Device Distribution</h5>
+                    <canvas id="deviceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Topology and Recent Devices -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="bi bi-diagram-3 text-primary"></i> Network Topology
+                        <button class="btn btn-sm btn-outline-primary float-end" onclick="discoverNetwork()">
+                            <i class="bi bi-arrow-clockwise"></i> Discover
+                        </button>
+                    </h5>
+                    <div class="network-topology">
+                        <canvas id="topologyCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="bi bi-router text-primary"></i> Recent Devices
+                        <span class="badge bg-primary float-end" id="deviceBadge">0</span>
+                    </h5>
+                    <div class="device-list" id="deviceList">
+                        <!-- Devices will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VLANs and Alerts -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="bi bi-layers text-primary"></i> VLAN Management
+                        <button class="btn btn-sm btn-success float-end" data-bs-toggle="modal" data-bs-target="#vlanModal">
+                            <i class="bi bi-plus-circle"></i> Add VLAN
+                        </button>
+                    </h5>
+                    <div id="vlanList">
+                        <!-- VLANs will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> Recent Alerts
+                        <span class="badge bg-danger float-end" id="alertBadge">0</span>
+                    </h5>
+                    <div id="alertList">
+                        <!-- Alerts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VLAN Modal -->
+    <div class="modal fade" id="vlanModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New VLAN</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="vlanForm">
+                        <div class="mb-3">
+                            <label for="vlanId" class="form-label">VLAN ID</label>
+                            <input type="number" class="form-control" id="vlanId" min="1" max="4094" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vlanName" class="form-label">VLAN Name</label>
+                            <input type="text" class="form-control" id="vlanName" maxlength="32" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vlanDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="vlanDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createVLAN()">Create VLAN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize Charts
+        const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+        const trafficChart = new Chart(trafficCtx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                datasets: [{
+                    label: 'Inbound',
+                    data: [30, 45, 60, 80, 95, 70],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Outbound',
+                    data: [20, 35, 50, 70, 85, 60],
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Mbps'
+                        }
+                    }
+                }
+            }
+        });
+
+        const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+        const deviceChart = new Chart(deviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Switches', 'Routers', 'Firewalls', 'Access Points', 'Other'],
+                datasets: [{
+                    data: [45, 25, 10, 15, 5],
+                    backgroundColor: [
+                        '#3498db',
+                        '#2ecc71',
+                        '#e74c3c',
+                        '#f39c12',
+                        '#9b59b6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Load Dashboard Data
+        async function loadDashboardData() {
+            try {
+                // Load VLANs
+                const vlanResponse = await fetch('/api/vlan');
+                if (vlanResponse.ok) {
+                    const vlanData = await vlanResponse.json();
+                    document.getElementById('vlanCount').textContent = vlanData.count || 0;
+                    displayVLANs(vlanData.vlans || []);
+                }
+
+                // Load Devices
+                const deviceResponse = await fetch('/api/network/devices');
+                if (deviceResponse.ok) {
+                    const deviceData = await deviceResponse.json();
+                    document.getElementById('deviceCount').textContent = deviceData.count || 0;
+                    document.getElementById('deviceBadge').textContent = deviceData.count || 0;
+                    displayDevices(deviceData.devices || []);
+                }
+
+                // Mock alerts for demonstration
+                displayAlerts([
+                    { severity: 'high', message: 'High CPU usage on Core-Switch-01', time: '5 mins ago' },
+                    { severity: 'medium', message: 'VLAN 100 approaching IP capacity', time: '1 hour ago' },
+                    { severity: 'low', message: 'Backup completed successfully', time: '3 hours ago' }
+                ]);
+                document.getElementById('alertCount').textContent = '3';
+                document.getElementById('alertBadge').textContent = '3';
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function displayVLANs(vlans) {
+            const vlanList = document.getElementById('vlanList');
+            if (vlans.length === 0) {
+                vlanList.innerHTML = '<p class="text-muted">No VLANs configured</p>';
+                return;
+            }
+            
+            vlanList.innerHTML = vlans.slice(0, 5).map(vlan => `
+                <div class="device-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="vlan-badge">VLAN ${vlan.vlan_id}</span>
+                            <strong class="ms-2">${vlan.name}</strong>
+                            <p class="text-muted mb-0 mt-1">${vlan.description || 'No description'}</p>
+                        </div>
+                        <div>
+                            <span class="badge bg-info">${vlan.device_count || 0} devices</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayDevices(devices) {
+            const deviceList = document.getElementById('deviceList');
+            if (devices.length === 0) {
+                deviceList.innerHTML = '<p class="text-muted">No devices discovered</p>';
+                return;
+            }
+            
+            deviceList.innerHTML = devices.slice(0, 5).map(device => `
+                <div class="device-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="status-indicator status-${device.status === 'active' ? 'active' : 'inactive'}"></span>
+                            <strong>${device.hostname}</strong>
+                            <p class="text-muted mb-0">${device.ip_address} - ${device.device_type || 'Unknown'}</p>
+                        </div>
+                        <div>
+                            ${device.vlan_id ? `<span class="badge bg-primary">VLAN ${device.vlan_id}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayAlerts(alerts) {
+            const alertList = document.getElementById('alertList');
+            alertList.innerHTML = alerts.map(alert => `
+                <div class="alert-item">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <i class="bi bi-exclamation-circle text-${alert.severity === 'high' ? 'danger' : alert.severity === 'medium' ? 'warning' : 'info'}"></i>
+                            <strong class="ms-2">${alert.message}</strong>
+                        </div>
+                        <small class="text-muted">${alert.time}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createVLAN() {
+            const vlanId = document.getElementById('vlanId').value;
+            const vlanName = document.getElementById('vlanName').value;
+            const vlanDescription = document.getElementById('vlanDescription').value;
+
+            try {
+                const response = await fetch('/api/vlan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        vlan_id: parseInt(vlanId),
+                        name: vlanName,
+                        description: vlanDescription
+                    })
+                });
+
+                if (response.ok) {
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('vlanModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('vlanForm').reset();
+                    
+                    // Reload data
+                    loadDashboardData();
+                    
+                    // Show success message
+                    alert('VLAN created successfully!');
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Failed to create VLAN'));
+                }
+            } catch (error) {
+                alert('Error creating VLAN: ' + error.message);
+            }
+        }
+
+        async function discoverNetwork() {
+            const networkRange = prompt('Enter network range to discover (e.g., 192.168.1.0/24):');
+            if (!networkRange) return;
+
+            try {
+                const response = await fetch('/api/network/discover', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        network_range: networkRange
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`Discovery completed! Found ${result.devices_found} devices.`);
+                    loadDashboardData();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Discovery failed'));
+                }
+            } catch (error) {
+                alert('Error during discovery: ' + error.message);
+            }
+        }
+
+        // Draw simple network topology
+        function drawTopology() {
+            const canvas = document.getElementById('topologyCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 350;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw core switch
+            ctx.fillStyle = '#3498db';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 30, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('CORE', canvas.width / 2, canvas.height / 2 + 4);
+            
+            // Draw connected devices
+            const devices = [
+                { x: 100, y: 100, label: 'SW1' },
+                { x: canvas.width - 100, y: 100, label: 'SW2' },
+                { x: 100, y: canvas.height - 100, label: 'SW3' },
+                { x: canvas.width - 100, y: canvas.height - 100, label: 'SW4' }
+            ];
+            
+            devices.forEach(device => {
+                // Draw connection line
+                ctx.strokeStyle = '#95a5a6';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, canvas.height / 2);
+                ctx.lineTo(device.x, device.y);
+                ctx.stroke();
+                
+                // Draw device
+                ctx.fillStyle = '#2ecc71';
+                ctx.beginPath();
+                ctx.arc(device.x, device.y, 20, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(device.label, device.x, device.y + 3);
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            drawTopology();
+            
+            // Refresh data every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+
+        // Redraw topology on window resize
+        window.addEventListener('resize', drawTopology);
+    </script>
+</body>
+</html>
