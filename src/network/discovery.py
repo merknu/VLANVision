@@ -3,7 +3,7 @@ import ipaddress
 import socket
 import threading
 import time
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
@@ -290,7 +290,7 @@ class NetworkDiscovery:
         
         return list(set(vlans))
     
-    def _identify_device(self, description: str, object_id: str) -> tuple[str, str]:
+    def _identify_device(self, description: str, object_id: str) -> Tuple[str, str]:
         """Identify device type and manufacturer from SNMP data."""
         description_lower = description.lower()
         
