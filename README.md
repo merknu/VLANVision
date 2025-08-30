@@ -35,17 +35,6 @@ VLANVision is a powerful, enterprise-grade network management system that's incr
 - **🌙 Dark Mode**: Easy on the eyes during those late-night troubleshooting sessions
 - **🔄 Auto-Updates**: Keep your system current with automatic updates
 
-## 💡 Why VLANVision?
-
-| Feature | VLANVision | SolarWinds | PRTG | Nagios |
-|---------|------------|------------|------|---------|
-| **Easy Installation** | ✅ 5 minutes | ❌ Hours | ❌ Complex | ❌ Very Complex |
-| **Windows Service** | ✅ Automated | ⚠️ Manual | ✅ Yes | ❌ No |
-| **Modern UI** | ✅ Beautiful | ❌ Dated | ⚠️ OK | ❌ Basic |
-| **Free & Open Source** | ✅ Yes | ❌ Expensive | ❌ Expensive | ✅ Yes |
-| **Real-time Monitoring** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Auto-Discovery** | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ Limited |
-
 ## 🚀 Quick Installation
 
 ### Prerequisites
